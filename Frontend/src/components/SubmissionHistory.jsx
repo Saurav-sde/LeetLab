@@ -27,7 +27,6 @@ const SubmissionHistory = ({ problemId }) => {
     fetchSubmissions();
   }, [problemId]);
 
-  // --- Helper functions are now part of the main component ---
 
   const getStatusInfo = (status) => {
     switch (status) {
@@ -55,8 +54,7 @@ const SubmissionHistory = ({ problemId }) => {
       {error && ( <div className="bg-red-900/20 border border-red-500/30 text-red-400 p-4 rounded-lg flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span>{error}</span></div> )}
 
       {!loading && !error && submissions.length === 0 && ( <div className="bg-zinc-800/50 border border-zinc-700 text-gray-400 p-4 rounded-lg flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg><span>No submissions found for this problem</span></div> )}
-      
-      {/* --- Submission List Layout (JSX is now inlined here) --- */}
+     
       {!loading && !error && submissions.length > 0 && (
         <div className="flex flex-col gap-3">
           {submissions.map((sub) => {
@@ -67,10 +65,9 @@ const SubmissionHistory = ({ problemId }) => {
                 className="group flex flex-col md:flex-row items-center bg-zinc-900/50 border border-transparent hover:border-zinc-700 p-4 rounded-lg transition-all duration-300 cursor-pointer"
                 onClick={() => setSelectedSubmission(sub)}
               >
-                {/* Status Indicator Bar */}
+
                 <div className={`w-full md:w-1 h-1 md:h-12 rounded-full md:rounded-lg ${statusInfo.barColor} mb-3 md:mb-0 md:mr-4`}></div>
                 
-                {/* Main Content */}
                 <div className="flex-grow flex flex-col md:flex-row items-center w-full">
                   {/* Left Section: Status & Language */}
                   <div className="w-full md:w-1/4 text-center md:text-left mb-3 md:mb-0">
@@ -105,13 +102,11 @@ const SubmissionHistory = ({ problemId }) => {
         </div>
       )}
 
-{/* --- MODAL SECTION (Refined) --- */}
       {selectedSubmission && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300">
           {/* Using zinc-900 for a deep, modern dark theme background */}
           <div className="bg-zinc-900 border border-zinc-700/80 rounded-lg shadow-xl w-11/12 max-w-5xl flex flex-col max-h-[90vh]">
             
-            {/* HEADER: Added transitions to the close button */}
             <div className="flex justify-between items-center p-4 border-b border-zinc-800">
               <h3 className="font-bold text-lg text-zinc-100">Submission Details</h3>
               <button 
@@ -121,8 +116,7 @@ const SubmissionHistory = ({ problemId }) => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            
-            {/* BODY: Adjusted spacing and text colors for better readability */}
+
             <div className="p-6 overflow-y-auto">
               <div className="mb-6 flex flex-wrap gap-x-8 gap-y-3 text-sm">
                   <p><span className="font-semibold text-zinc-400">Status: </span> <span className={`font-bold ${getStatusInfo(selectedSubmission.status).color}`}>{getStatusInfo(selectedSubmission.status).label}</span></p>
@@ -131,7 +125,6 @@ const SubmissionHistory = ({ problemId }) => {
                   <p><span className="font-semibold text-zinc-400">Passed: </span> <span className="font-mono text-zinc-200">{selectedSubmission.testCasesPassed}/{selectedSubmission.testCasesTotal}</span></p>
               </div>
 
-              {/* Refined error message block for better visibility */}
               {selectedSubmission.errorMessage && (
                 <div className="bg-red-500/10 border border-red-500/20 text-red-300 p-4 mb-6 rounded-md">
                   <p className="font-semibold mb-2 text-red-200">Error Details</p>
@@ -139,7 +132,6 @@ const SubmissionHistory = ({ problemId }) => {
                 </div>
               )}
               
-              {/* Adjusted top margin for balanced spacing */}
               <div className="mt-8">
                 <SolutionCard
                   language={selectedSubmission.language}

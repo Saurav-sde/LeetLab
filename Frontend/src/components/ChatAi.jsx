@@ -2,37 +2,37 @@ import { useState, useRef, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import axiosClient from "../utils/axiosClient";
-import { Send, Bot, ThumbsUp, ThumbsDown, Copy } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
-
-// Helper function to get user initials
-const getInitials = (name = "") => {
-    return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
-};
+import ChatMessage from "./ChatMessage"; // <-- Import the new component
 
 function ChatAi({ problem }) {
-    // --- CORE LOGIC REMAINS UNCHANGED ---
     const { user } = useSelector((state) => state.auth);
     const [messages, setMessages] = useState([
-        { role: 'model', parts: [{ text: `Hi ${user?.firstName}, how can I help you with this problem?` }] }
+        { role: 'model', parts: [{ text: `Hi ${user?.firstName}, I'm your AI assistant. I have context about the problem you're working on. Feel free to ask for hints, code explanations, or debugging help!` }] }
     ]);
-    const { register, handleSubmit, reset, watch, formState: { errors } } = useForm({
+    const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm({
       defaultValues: { message: "" }
     });
     const messageValue = watch("message");
     const messagesEndRef = useRef(null);
+    const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     }, [messages]);
-
+    
+    // IMPORTANT: Make sure your backend AI is prompted to respond in Markdown format.
+    // For example, add to your system prompt: "Please format your responses using Markdown. Use code blocks for code snippets."
     const onSubmit = async (data) => {
-        if (!data.message.trim()) return;
+        if (!data.message.trim() || isAwaitingResponse) return;
+
         const newUserMessage = { role: 'user', parts: [{ text: data.message }] };
         const currentMessages = [...messages, newUserMessage];
         
         setMessages(currentMessages);
         reset();
+        setIsAwaitingResponse(true);
 
         try {
             const response = await axiosClient.post("/ai/chat", {
@@ -53,12 +53,13 @@ function ChatAi({ problem }) {
                 role: 'model',
                 parts: [{ text: "I'm sorry, I'm having trouble connecting right now. Please try again later." }]
             }]);
+        } finally {
+            setIsAwaitingResponse(false);
         }
     };
-    // --- END OF UNCHANGED LOGIC ---
 
     return (
-        <div className="flex flex-col h-screen max-h-[80vh] min-h-[500px] bg-[#1A1A1A] text-gray-300 font-sans">
+        <div className="flex flex-col h-screen max-h-[83vh] min-h-[500px] bg-[#1A1A1A] text-gray-300 font-sans">
             {/* Messages Display Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-8">
                 <AnimatePresence>
@@ -69,52 +70,36 @@ function ChatAi({ problem }) {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.4, ease: 'easeOut' }}
-                            className={`flex items-start gap-4 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                         >
-                            {/* AI 'Model' Message Style */}
-                            {msg.role === 'model' && (
-                                <div className="flex items-start gap-4 max-w-full">
-                                    <div className="flex-shrink-0 w-8 h-8 mt-1 rounded-full bg-zinc-800 flex items-center justify-center">
-                                        <Bot className="w-5 h-5 text-gray-400" />
-                                    </div>
-                                    <div className="flex flex-col gap-3">
-                                        <p className="whitespace-pre-wrap leading-relaxed text-gray-200">
-                                            {msg.parts[0].text}
-                                        </p>
-                                        <div className="flex items-center gap-3">
-                                            <button className="text-gray-500 hover:text-gray-300 transition-colors"><ThumbsUp size={16} /></button>
-                                            <button className="text-gray-500 hover:text-gray-300 transition-colors"><ThumbsDown size={16} /></button>
-                                            <button className="text-gray-500 hover:text-gray-300 transition-colors"><Copy size={16} /></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                            
-                            {/* User Message Style */}
-                            {msg.role === 'user' && (
-                                <>
-                                    <div className="max-w-md md:max-w-lg p-3 rounded-lg bg-zinc-800">
-                                        <p className="whitespace-pre-wrap leading-relaxed text-gray-200">{msg.parts[0].text}</p>
-                                    </div>
-                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-700 text-gray-300 flex items-center justify-center font-semibold text-sm">
-                                        {getInitials(user?.firstName)}
-                                    </div>
-                                </>
-                            )}
+                            <ChatMessage msg={msg} user={user} />
                         </motion.div>
                     ))}
+                    {isAwaitingResponse && (
+                         <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="flex justify-start"
+                        >
+                           <div className="text-gray-400 text-sm flex items-center gap-2 p-2 bg-zinc-800 rounded-md">
+                                <span className="loading loading-dots loading-xs"></span>
+                               <span>AI is thinking...</span>
+                           </div>
+                        </motion.div>
+                    )}
                 </AnimatePresence>
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Form Area - Styled to match the image */}
             <div className="p-4 pt-2">
                 <form onSubmit={handleSubmit(onSubmit)} className="relative">
                     <textarea
-                        placeholder="Ask your doubt"
+                        placeholder="Ask for a hint, explain a concept, or debug your code..."
                         className="w-full h-28 p-4 pr-16 bg-zinc-800 border border-yellow-500/50 rounded-xl resize-none text-gray-200 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-all"
                         {...register("message")}
                         maxLength={3000}
+                        disabled={isAwaitingResponse}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
@@ -127,13 +112,12 @@ function ChatAi({ problem }) {
                     </div>
                     <motion.button
                         type="submit"
-                        className="absolute bottom-3 right-4 btn btn-circle btn-sm bg-yellow-600 hover:bg-yellow-500 border-none cursor-pointer"
-                        disabled={!messageValue.trim()}
+                        className="absolute bottom-3 right-4 btn btn-circle btn-sm bg-yellow-600 hover:bg-yellow-500 border-none disabled:bg-zinc-600 disabled:cursor-not-allowed"
+                        disabled={!messageValue.trim() || isAwaitingResponse}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={handleSubmit(onSubmit)}
                     >
-                        <Send size={16} className="text-white" />
+                        <Send size={16} className="text-white"/>
                     </motion.button>
                 </form>
             </div>

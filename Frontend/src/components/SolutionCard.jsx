@@ -3,8 +3,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { FaRegCopy, FaCheck } from "react-icons/fa";
 
-// Custom style to perfectly match the VS Code look & feel
-// Your original theme is excellent and already handles the larger code font size. No changes needed here.
+
 const codeTheme = {
   ...vscDarkPlus,
   'pre[class*="language-"]': {
@@ -12,8 +11,8 @@ const codeTheme = {
     backgroundColor: '#1E1E1E',
     padding: '1.25rem',
     borderRadius: '0 0 0.5rem 0.5rem',
-    fontSize: '1rem', // 16px is a good base.
-    lineHeight: '1.6', // Great for readability.
+    fontSize: '1rem', 
+    lineHeight: '1.6', 
   },
   'code[class*="language-"]': {
     ...vscDarkPlus['code[class*="language-"]'],
@@ -28,7 +27,8 @@ const lang  = {
     "JavaScript" : 'javascript',
     "c++" : "cpp",
     "java" : "java",
-    "javascript": "javascript"
+    "javascript": "javascript",
+    "cpp" : "cpp"
 }
 
 const SolutionCard = ({language, completeCode}) => {
@@ -45,14 +45,12 @@ const SolutionCard = ({language, completeCode}) => {
 
   return (
     <div className="border border-zinc-700/80 rounded-lg shadow-lg bg-[#1E1E1E]">
-      {/* --- Card Header (MODIFIED for better padding and font size) --- */}
       <div className="flex justify-between items-center bg-[#252526] px-4 py-3 rounded-t-lg border-b border-zinc-700/80">
-        <h3 className="text-slate-300 font-medium text-base"> {/* MODIFIED: text-sm -> text-base */}
+        <h3 className="text-slate-300 font-medium text-base">
           <span className="font-semibold text-slate-100">{language}</span>
         </h3>
         <button
           onClick={handleCopy}
-          // --- BUTTON STYLES (MODIFIED for new colors, size, and style) ---
           className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-md transition-all duration-200 border ${
             isCopied
               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
@@ -64,7 +62,6 @@ const SolutionCard = ({language, completeCode}) => {
         </button>
       </div>
 
-      {/* --- Code Block (No changes needed, your theme is great) --- */}
       <SyntaxHighlighter
         language={lang[language]}
         style={codeTheme}
