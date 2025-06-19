@@ -1,11 +1,16 @@
 // src/components/problem/LeftPanel.js
+
 import { BsCpu, BsFileText, BsJournalText, BsLightbulb, BsChatDots } from "react-icons/bs";
 import { FaHistory } from "react-icons/fa";
+// NEW: Import the maximize/minimize icons
+import { FiMaximize, FiMinimize2 } from 'react-icons/fi';
+
 import SubmissionHistory from '../SubmissionHistory';
 import ChatAi from '../ChatAi';
 import SolutionCard from '../SolutionCard';
 import ProblemDescription from './ProblemDescription';
 import SubmissionResultView from './SubmissionResultView';
+import Editorial from "../Editorial";
 
 // A local helper component for tabs
 const LeftPanelTab = ({ name, label, icon, activeTab, onTabChange }) => (
@@ -40,11 +45,23 @@ const ReferenceSolutions = ({ solutions }) => (
   </div>
 );
 
-const LeftPanel = ({ problem, activeTab, onTabChange, submitResult, problemId, code, language }) => {
+// MODIFIED: Accept onMaximize and isMaximized props
+const LeftPanel = ({ 
+    problem, 
+    activeTab, 
+    onTabChange, 
+    submitResult, 
+    problemId, 
+    code, 
+    language,
+    onMaximize,
+    isMaximized
+}) => {
   return (
     <div className="h-full flex flex-col border-r border-gray-700 overflow-hidden">
-      <div className="flex-shrink-0 px-4 border-b border-gray-700 min-h-13">
-        {/* MODIFICATION HERE: Added overflow-x-auto and whitespace-nowrap */}
+      {/* MODIFIED: The header is now a flex container with justify-between */}
+      <div className="flex-shrink-0 flex justify-between items-center px-4 border-b border-gray-700 min-h-13 bg-[#262626]">
+        {/* Container for tabs */}
         <div className="flex items-center space-x-4 overflow-x-auto whitespace-nowrap">
           <LeftPanelTab name="description" label="Description" icon={<BsFileText className="text-lg" />} activeTab={activeTab} onTabChange={onTabChange} />
           {submitResult && (
@@ -55,10 +72,29 @@ const LeftPanel = ({ problem, activeTab, onTabChange, submitResult, problemId, c
           <LeftPanelTab name="submissions" label="Submissions" icon={<FaHistory className="text-lg" />} activeTab={activeTab} onTabChange={onTabChange} />
           <LeftPanelTab name="chatAI" label="ChatAI" icon={<BsChatDots className="text-lg" />} activeTab={activeTab} onTabChange={onTabChange} />
         </div>
+
+        {/* NEW: Maximize/Minimize button */}
+        <div className="flex items-center text-gray-400 text-lg pl-4">
+            <button
+                onClick={onMaximize}
+                className="cursor-pointer hover:text-white"
+                title={isMaximized ? 'Restore' : 'Maximize'}
+            >
+                {isMaximized ? <FiMinimize2 /> : <FiMaximize />}
+            </button>
+        </div>
       </div>
+
       <div className="flex-1 overflow-y-auto px-6 py-3">
         {activeTab === 'description' && <ProblemDescription problem={problem} />}
-        {activeTab === 'editorial' && <div className="prose max-w-none"><h2 className="text-xl font-bold mb-4">Editorial</h2><p>Editorial is here for the problem</p></div>}
+        {activeTab === 'editorial' && (
+            <div className="prose max-w-none">
+              <h2 className="text-xl font-bold mb-4">Editorial</h2>
+              <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                  <Editorial secureUrl={problem.secureUrl} thumbnailUrl={problem.thumbnailUrl} duration={problem.duration}/>
+              </div>
+            </div>
+        )}
         {activeTab === 'solutions' && <ReferenceSolutions solutions={problem?.referenceSolution} />}
         {activeTab === 'submissions' && <SubmissionHistory problemId={problemId} />}
         {activeTab === 'chatAI' && <ChatAi problem={problem} />}

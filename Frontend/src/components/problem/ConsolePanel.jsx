@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FiMaximize } from 'react-icons/fi';
+// MODIFIED: Import the minimize icon as well
+import { FiMaximize, FiMinimize2 } from 'react-icons/fi';
 import { FaCheckCircle, FaTimesCircle, FaCode } from 'react-icons/fa';
 
 // Helper component for rendering test case details with improved styling
@@ -27,7 +28,8 @@ const TestCaseDetails = ({ testCase }) => {
   );
 };
 
-const ConsolePanel = ({ loading, lastAction, runResult, submitResult }) => {
+// MODIFIED: Accept onMaximize and isMaximized props
+const ConsolePanel = ({ loading, lastAction, runResult, submitResult, onMaximize, isMaximized }) => {
   const [activeResultCase, setActiveResultCase] = useState(0);
 
   // Reset active case to the first one when new results arrive
@@ -54,10 +56,8 @@ const ConsolePanel = ({ loading, lastAction, runResult, submitResult }) => {
     // --- Run Result State ---
     if (lastAction === 'run' && runResult) {
       const isSuccess = runResult.success;
-      console.log(isSuccess);
-      
       const statusText = isSuccess === true ? 'Accepted' : 'Wrong Answer';
-      const statusColorClass = isSuccess  === true ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400';
+      const statusColorClass = isSuccess === true ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400';
       const StatusIcon = isSuccess === true ? FaCheckCircle : FaTimesCircle;
 
       return (
@@ -131,18 +131,23 @@ const ConsolePanel = ({ loading, lastAction, runResult, submitResult }) => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#1e1e1e] font-sans text-gray-300">
+    <div className="h-full flex flex-col font-sans text-gray-300">
       {/* Panel Header */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 border-b border-white/10">
         <p className="text-base font-medium">Console</p>
         <div className="flex items-center gap-3 text-gray-400 text-lg">
-          <button className="focus:outline-none" title="Maximize">
-            <FiMaximize className="cursor-pointer hover:text-white transition-colors" />
+          {/* MODIFIED: The static button is now dynamic */}
+          <button
+            onClick={onMaximize}
+            className="focus:outline-none cursor-pointer hover:text-white transition-colors"
+            title={isMaximized ? 'Restore' : 'Maximize'}
+          >
+            {isMaximized ? <FiMinimize2 /> : <FiMaximize />}
           </button>
         </div>
       </div>
       {/* Panel Content */}
-      <div className="flex-1 bg-[#252526] overflow-y-auto p-5">
+      <div className="flex-1 bg-[#1E1E1E] overflow-y-auto p-5">
         {renderContent()}
       </div>
     </div>

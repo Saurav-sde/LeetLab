@@ -1,13 +1,25 @@
 // src/components/problem/CodeEditorPanel.js
+
 import Editor from '@monaco-editor/react';
-import { FiSettings, FiMaximize } from 'react-icons/fi';
+// MODIFIED: Import the minimize icon as well
+import { FiMaximize, FiMinimize2 } from 'react-icons/fi'; 
 import { FaAngleDown } from 'react-icons/fa';
 
 const getLanguageForMonaco = (lang) => {
     return lang === 'javascript' || lang === 'java' || lang === 'cpp' ? lang : 'javascript';
 };
 
-const CodeEditorPanel = ({ selectedLanguage, onLanguageChange, code, onCodeChange, onEditorMount, languageMap }) => {
+// MODIFIED: Accept onMaximize and isMaximized props
+const CodeEditorPanel = ({ 
+    selectedLanguage, 
+    onLanguageChange, 
+    code, 
+    onCodeChange, 
+    onEditorMount, 
+    languageMap, 
+    onMaximize, 
+    isMaximized 
+}) => {
     
     const handleLanguageSelect = (language) => {
         onLanguageChange(language);
@@ -17,10 +29,11 @@ const CodeEditorPanel = ({ selectedLanguage, onLanguageChange, code, onCodeChang
     };
 
     return (
+        // The overall structure is perfect. No changes needed here.
         <div className="h-full flex flex-col">
-            <div className="flex-shrink-0 flex justify-between items-center px-3 py-2 bg-[#282828] border-b border-gray-700 min-h-13">
+            <div className="flex-shrink-0 flex justify-between items-center px-3 py-2 border-b border-gray-700 min-h-13">
                 <div className="dropdown">
-                    <label tabIndex={0} className="btn btn-sm btn-outline btn-warning text-md normal-case hover:btn-active hover:text-white">
+                    <label tabIndex={0} className=" text-md normal-case text-gray-400 hover:text-white flex justify-center items-center cursor-pointer">
                         <strong>{languageMap[selectedLanguage]}</strong>
                         <FaAngleDown/>
                     </label>
@@ -30,9 +43,16 @@ const CodeEditorPanel = ({ selectedLanguage, onLanguageChange, code, onCodeChang
                         <li><a onClick={() => handleLanguageSelect('javascript')} className="hover:bg-neutral-700 hover:text-white rounded-md">JavaScript</a></li>
                     </ul>
                 </div>
+
+                {/* MODIFIED: The static icon is now a dynamic button */}
                 <div className="flex items-center gap-3 text-gray-400 text-lg">
-                    <FiSettings className="cursor-pointer hover:text-white"/>
-                    <FiMaximize className="cursor-pointer hover:text-white"/>
+                    <button
+                        onClick={onMaximize}
+                        className="cursor-pointer hover:text-white"
+                        title={isMaximized ? 'Restore' : 'Maximize'}
+                    >
+                        {isMaximized ? <FiMinimize2 /> : <FiMaximize />}
+                    </button>
                 </div>
             </div>
             <div className="flex-1 bg-[#1e1e1e]">
@@ -43,7 +63,24 @@ const CodeEditorPanel = ({ selectedLanguage, onLanguageChange, code, onCodeChang
                     onChange={value => onCodeChange(value || '')}
                     onMount={onEditorMount}
                     theme="vs-dark"
-                    options={{ fontSize: 14, minimap: { enabled: false }, scrollBeyondLastLine: false, automaticLayout: true, tabSize: 2, insertSpaces: true, wordWrap: 'on' }}
+                    options={{ fontSize: 14,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    tabSize: 2,
+                    insertSpaces: true,
+                    wordWrap: 'on',
+                    lineNumbers: 'on',
+                    glyphMargin: false,
+                    folding: true,
+                    lineDecorationsWidth: 10,
+                    lineNumbersMinChars: 3,
+                    renderLineHighlight: 'line',
+                    selectOnLineNumbers: true,
+                    roundedSelection: false,
+                    readOnly: false,
+                    cursorStyle: 'line',
+                    mouseWheelZoom: true, }}
                 />
             </div>
         </div>

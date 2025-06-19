@@ -14,6 +14,9 @@ import LeftPanel from '../components/problem/LeftPanel';
 import CodeEditorPanel from '../components/problem/CodeEditorPanel';
 import ConsolePanel from '../components/problem/ConsolePanel';
 
+// NEW: Import icons for maximize/minimize
+import { Maximize, Minimize } from 'lucide-react'; 
+
 const ProblemPage = () => {
   const { user } = useSelector((state) => state.auth);
   const { problemId } = useParams();
@@ -37,6 +40,9 @@ const ProblemPage = () => {
   // Results State
   const [runResult, setRunResult] = useState(null);
   const [submitResult, setSubmitResult] = useState(null);
+
+  // NEW: State to track which panel is maximized
+  const [maximizedPanel, setMaximizedPanel] = useState(null); // null, 'left', 'editor', 'console'
 
   // --- Data Fetching ---
   useEffect(() => {
@@ -75,7 +81,6 @@ const ProblemPage = () => {
     try {
       const response = await axiosClient.post(`/submission/run/${problemId}`, { code, language: selectedLanguage });
       console.log(response.data);
-      
       setRunResult(response.data);
     } catch (error) {
       console.error('Error running code:', error);
@@ -94,8 +99,7 @@ const ProblemPage = () => {
       const response = await axiosClient.post(`/submission/submit/${problemId}`, { code, language: selectedLanguage });
       setSubmitResult(response.data);
       console.log(response.data);
-      
-      setActiveLeftTab('submissionResult'); // Switch to the result tab
+      setActiveLeftTab('submissionResult');
     } catch (error) {
       console.error('Error submitting code:', error);
       setSubmitResult({ accepted: false, error: 'Submission Failed' });
@@ -103,6 +107,12 @@ const ProblemPage = () => {
     }
     setIsActionLoading(false);
   };
+
+  // NEW: Handler to toggle the maximized panel
+  const handleMaximizeToggle = (panelName) => {
+    setMaximizedPanel(current => (current === panelName ? null : panelName));
+  };
+
 
   if (isPageLoading) {
     return (
@@ -112,8 +122,46 @@ const ProblemPage = () => {
     );
   }
 
+  const leftPanelComponent = (
+    <LeftPanel
+      problem={problem}
+      activeTab={activeLeftTab}
+      onTabChange={setActiveLeftTab}
+      submitResult={submitResult}
+      problemId={problemId}
+      code={finalCode}
+      language={finalSelectedLanguage}
+      onMaximize={() => handleMaximizeToggle('left')}
+      isMaximized={maximizedPanel === 'left'}
+    />
+  );
+
+  const editorPanelComponent = (
+    <CodeEditorPanel
+      selectedLanguage={selectedLanguage}
+      onLanguageChange={setSelectedLanguage}
+      code={code}
+      onCodeChange={setCode}
+      onEditorMount={(editor) => editorRef.current = editor}
+      languageMap={languageMap}
+      onMaximize={() => handleMaximizeToggle('editor')}
+      isMaximized={maximizedPanel === 'editor'}
+    />
+  );
+  
+  const consolePanelComponent = (
+    <ConsolePanel
+      loading={isActionLoading}
+      lastAction={lastAction}
+      runResult={runResult}
+      submitResult={submitResult}
+      onMaximize={() => handleMaximizeToggle('console')}
+      isMaximized={maximizedPanel === 'console'}
+    />
+  );
+
   return (
-    <div className="bg-[#1a1a1a] text-white h-screen font-sans flex flex-col">
+    <div className="text-white h-screen font-sans flex flex-col">
       <ProblemPageHeader
         user={user}
         loading={isActionLoading}
@@ -121,48 +169,37 @@ const ProblemPage = () => {
         onSubmit={handleSubmitCode}
       />
       
-      <main className="flex-1 overflow-hidden">
-        <PanelGroup direction="horizontal">
-          <Panel defaultSize={50} minSize={30}>
-            <LeftPanel
-              problem={problem}
-              activeTab={activeLeftTab}
-              onTabChange={setActiveLeftTab}
-              submitResult={submitResult}
-              problemId={problemId}
-              code = {finalCode}
-              language={finalSelectedLanguage}
-            />
-          </Panel>
+      {/* MODIFIED: The main content area now renders based on the maximizedPanel state */}
+      <main className="flex-1 overflow-hidden bg-[#0F0F0F]">
+        {maximizedPanel ? (
+          <div className="w-full h-full p-3">
+            {maximizedPanel === 'left' && <div className="bg-[#1E1E1E] rounded-2xl h-full w-full">{leftPanelComponent}</div>}
+            {maximizedPanel === 'editor' && <div className="bg-[#262626] rounded-2xl h-full w-full">{editorPanelComponent}</div>}
+            {maximizedPanel === 'console' && <div className="bg-[#262626] rounded-2xl h-full w-full">{consolePanelComponent}</div>}
+          </div>
+        ) : (
+          <PanelGroup direction="horizontal">
+            <Panel defaultSize={50} minSize={30} className='border border-[#262626] bg-[#1E1E1E] rounded-2xl mr-1 mt-3 mb-3 ml-3'>
+              {leftPanelComponent}
+            </Panel>
 
-          <PanelResizeHandle className="w-1 bg-transparent hover:bg-yellow-500/50 active:bg-yellow-500 transition-colors duration-200" />
-          
-          <Panel defaultSize={50} minSize={30}>
-            <PanelGroup direction="vertical">
-              <Panel defaultSize={60} minSize={20}>
-                <CodeEditorPanel
-                  selectedLanguage={selectedLanguage}
-                  onLanguageChange={setSelectedLanguage}
-                  code={code}
-                  onCodeChange={setCode}
-                  onEditorMount={(editor) => editorRef.current = editor}
-                  languageMap={languageMap}
-                />
-              </Panel>
-              
-              <PanelResizeHandle className="h-1 bg-transparent hover:bg-yellow-500/50 active:bg-yellow-500 transition-colors duration-200" />
+            <PanelResizeHandle className="w-0.5 bg-transparent hover:bg-[#007BFF] active:bg-[#007BFF] transition-colors duration-200 mb-1"/>
+            
+            <Panel defaultSize={50} minSize={30}>
+              <PanelGroup direction="vertical">
+                <Panel defaultSize={60} minSize={20} className='border border-[#262626] bg-[#262626] rounded-2xl mr-3 mt-3 mb-1 ml-1'>
+                  {editorPanelComponent}
+                </Panel>
+                
+                <PanelResizeHandle className="h-0.5 bg-transparent hover:bg-[#007BFF] active:bg-[#007BFF] transition-colors duration-200 mb-1" />
 
-              <Panel defaultSize={40} minSize={10}>
-                <ConsolePanel
-                  loading={isActionLoading}
-                  lastAction={lastAction}
-                  runResult={runResult}
-                  submitResult={submitResult}
-                />
-              </Panel>
-            </PanelGroup>
-          </Panel>
-        </PanelGroup>
+                <Panel defaultSize={40} minSize={10} className='border border-[#262626] bg-[#262626] rounded-2xl mb-3 mr-3 ml-1'>
+                  {consolePanelComponent}
+                </Panel>
+              </PanelGroup>
+            </Panel>
+          </PanelGroup>
+        )}
       </main>
     </div>
   );

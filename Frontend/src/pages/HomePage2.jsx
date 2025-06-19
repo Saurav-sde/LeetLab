@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router'; // Note: react-router-dom is more standard
+import { NavLink, useNavigate } from 'react-router'; // Using react-router-dom as is standard
 import { useDispatch, useSelector } from 'react-redux';
 import axiosClient from '../utils/axiosClient';
 import { logoutUser } from '../authSlice';
@@ -17,7 +17,6 @@ function Homepage() {
     status: 'all',
   });
 
-  // --- Data fetching and other logic remains unchanged ---
   useEffect(() => {
     const fetchProblems = async () => {
       try {
@@ -48,29 +47,25 @@ function Homepage() {
     const isSolved = solvedProblemIds.has(problem._id);
     const difficultyMatch = filters.difficulty === 'all' || problem.difficulty === filters.difficulty;
     const tagMatch = filters.tag === 'all' || problem.tags === filters.tag;
-    // Updated logic for status filter to also handle "unsolved"
     const statusMatch = filters.status === 'all' 
                         || (filters.status === 'solved' && isSolved)
                         || (filters.status === 'unsolved' && !isSolved);
     return difficultyMatch && tagMatch && statusMatch;
   });
 
-  // Helper function to get difficulty text color
   const getDifficultyColor = (difficulty) => {
     switch (difficulty?.toLowerCase()) {
-      case 'easy':   return 'text-green-500';
-      case 'medium': return 'text-yellow-500';
-      case 'hard':   return 'text-red-500';
+      case 'easy':   return 'text-[#1CBABA]';
+      case 'medium': return 'text-[#FFB700]';
+      case 'hard':   return 'text-[#F63737]';
       default:       return 'text-gray-500';
     }
   };
 
   return (
-    // Main container: LeetCode-style very dark background and light text
-    <div className="min-h-screen bg-zinc-900 text-neutral-300 font-sans">
+    <div className="min-h-screen bg-[#1A1A1A] text-neutral-300 font-sans">
       
-      {/* Navbar: Fused with the background, separated by a subtle bottom border */}
-      <header className="navbar bg-zinc-900 px-4 sm:px-6 lg:px-8 sticky top-0 z-50 border-b border-zinc-800">
+      <header className="navbar bg-[#262626] px-4 sm:px-6 lg:px-8 sticky top-0 z-50 border-b border-zinc-800">
         <div className="flex-1">
           <NavLink to="/" className="btn btn-ghost text-xl font-semibold text-white hover:bg-transparent px-0">
             ProCode
@@ -100,7 +95,6 @@ function Homepage() {
       </header>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters section: Minimalist and inline */}
         <div className="mb-6 flex flex-col md:flex-row flex-wrap items-center gap-4">
           <select 
             className="select select-sm w-full md:w-auto bg-zinc-800 border-zinc-700 text-neutral-300 focus:outline-none focus:ring-1 focus:ring-yellow-500"
@@ -134,51 +128,45 @@ function Homepage() {
           </select>
         </div>
 
-        {/* Problems table */}
-        <div className="overflow-x-auto rounded-lg border border-zinc-800">
-          <table className="table-auto w-full">
-            <thead className="bg-zinc-800/50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider w-20">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider w-40">Difficulty</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider w-40">Tag</th>
-              </tr>
-            </thead>
-            <tbody className="bg-zinc-900">
-              {filteredProblems.length > 0 ? (
-                filteredProblems.map(problem => (
-                  <tr key={problem._id} className="border-b border-zinc-800 last:border-b-0 hover:bg-zinc-800/70 transition-colors duration-200">
-                    <td className="px-4 py-4 text-center">
-                      {solvedProblemIds.has(problem._id) && (
-                        <FaCheckCircle className="text-green-500 text-lg" title="Solved" />
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <NavLink to={`/problem/${problem._id}`} className="hover:text-white transition-colors duration-150">
-                        {problem.title}
-                      </NavLink>
-                    </td>
-                    <td className={`px-6 py-4 font-medium ${getDifficultyColor(problem.difficulty)}`}>
-                      {problem.difficulty}
-                    </td>
-                    <td className="px-6 py-4">
-                       <span className="inline-block bg-zinc-700 text-neutral-300 px-2.5 py-1 rounded-full text-xs font-medium">
-                        {problem.tags}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" className="text-center py-16 text-zinc-600">
-                    <h3 className="text-xl font-semibold">No Problems Found</h3>
-                    <p className="mt-2">Try adjusting the filters to find your next challenge!</p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        {/* Problems List: Replaces the old table */}
+        <div className="overflow-hidden">
+          {/* List Body */}
+          <div>
+            {filteredProblems.length > 0 ? (
+              filteredProblems.map((problem, index) => (
+                <div 
+                  key={problem._id} 
+                  className={`flex items-center rounded-lg transition-colors duration-200 
+                              ${index % 2 == 0 ? 'bg-[#262626]' : 'bg-transparent'} 
+                              `}
+                >
+                  <div className="px-4 py-4 w-20 flex justify-center">
+                    {solvedProblemIds.has(problem._id) && (
+                      <FaCheckCircle className="text-green-500 text-lg" title="Solved" />
+                    )}
+                  </div>
+                  <div className="px-6 py-4 flex-1">
+                    <NavLink to={`/problem/${problem._id}`} className="hover:text-white transition-colors duration-150 text-base">
+                      {problem.title}
+                    </NavLink>
+                  </div>
+                  <div className={`text-[14px] font-medium px-6 py-4 w-40 ${getDifficultyColor(problem.difficulty)}`}>
+                    {`${problem.difficulty.charAt(0).toUpperCase()}${problem.difficulty.slice(1)}`}
+                  </div>
+                  <div className="px-6 py-4 w-40">
+                     <span className="inline-block bg-zinc-700 text-neutral-300 px-2.5 py-1 rounded-full text-xs font-medium">
+                      {problem.tags}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-16 text-zinc-600">
+                <h3 className="text-xl font-semibold">No Problems Found</h3>
+                <p className="mt-2">Try adjusting the filters to find your next challenge!</p>
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </div>
