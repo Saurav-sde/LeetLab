@@ -21,7 +21,7 @@ const createProblem = async(req,res) => {
             }));
 
             const submitResult = await submitBatch(submission);
-            console.log(submitResult);
+            // console.log(submitResult);
             
 
             const resultToken = submitResult.map((value)=>value.token); // ["token1","token2","token3"]
@@ -30,20 +30,23 @@ const createProblem = async(req,res) => {
             
             for (const test of testResult) {
                 if(test.status_id != 3)
-                    return res.status(400).send("Error Occurred!");
+                    return res.status(400).json({ message: `Reference Solution failed for language '${language}' on one or more test cases. `});
             }
         }
 
         // now we can store it in db
-        const userProblem = await Problem.create({
+        const newProblem = new Problem({
             ...req.body,
             problemCreator: req.result._id
         });
+        await newProblem.save();
+        await newProblem.populate('tags', 'name description');
+        console.log(newProblem);
         
-        res.status(201).send("Problem Saved Successfully");
+        res.status(201).json(newProblem);
 
     } catch (err) {
-        res.status(400).send("Error: " + err);
+        res.status(400).json({ message: "Failed to create problem.", error: err.message });
     }
 }
 
@@ -53,7 +56,7 @@ const updateProblem = async(req,res) => {
     try {
 
         if(!id)
-            return res.status(400).send("Missing Id");
+            return res.status(400).json({ message: "Problem ID is required." });
 
         const DsaProblem = await Problem.findById(id);
         if(!DsaProblem)
@@ -84,11 +87,13 @@ const updateProblem = async(req,res) => {
             }
         }
 
-        const newProblem = await Problem.findByIdAndUpdate(id,{...req.body}, {runValidators:true, new:true});
+        const updatedProblem = await Problem.findByIdAndUpdate(id,req.body, {runValidators:true, new:true}).populate('tags', 'name');
 
-        res.status(200).send(newProblem);
+        if(!updatedProblem)
+            return res.status(404).json({message: "Problem not found"});
+        res.status(200).json(updatedProblem);
     } catch (err) {
-        res.status(500).send("Error : " + err);
+        res.status(500).json({message: "Failed to update problem", error:err.message});
     }
 }
 
@@ -97,16 +102,16 @@ const deleteProblem = async(req,res) => {
 
     try {
         if(!id)
-            return res.status(400).send("ID is missing");
+            return res.status(400).json({ message: "ID is missing" });
 
         const deletedProblem = await Problem.findByIdAndDelete(id);
 
         if(!deletedProblem)
-            return res.status(404).send("Problem is missing");
+            return res.status(404).json({ message: "Problem not found" });
 
-        res.status(200).send("Successfully Deleted");
+        res.status(200).json({ message: "Problem successfully deleted", deletedProblemId: deletedProblem._id });
     } catch (err) {
-        res.status(500).send("Error: " + err);
+        res.status(500).json({ message: "Error deleting problem.", error: err.message });
     }
 }
 
@@ -115,13 +120,13 @@ const getProblemById = async(req,res) => {
 
     try {
         if(!id)
-            return res.status(400).send("ID is missing");
+            return res.status(400).json({ message: "ID is missing" });
 
-        const getProblem = await Problem.findById(id).select('_id title description difficulty tags visibleTestCases startCode referenceSolution');
-        // select('-hiddenTestCases') all fields get selected except hiddenTestCases
+        // const getProblem = await Problem.findById(id).select('_id title description difficulty tags visibleTestCases startCode referenceSolution');
+        const getProblem = await Problem.findById(id).select('-hiddenTestCases').populate('tags', 'name description');
 
         if(!getProblem)
-            return res.status(404).send("Problem is missing");
+            return res.status(404).json({message: "Problem not found"});
 
         // video ka jo bhi url hai wo le aao
         const videos = await SolutionVideo.findOne({problemId:id});
@@ -134,25 +139,25 @@ const getProblemById = async(req,res) => {
                 thumbnailUrl : videos.thumbnailUrl,
                 duration : videos.duration,
             }
-            return res.status(200).send(responseData);
+            return res.status(200).json(responseData);
         }
 
-        res.status(200).send(getProblem);
+        res.status(200).json(getProblem);
     } catch (err) {
-        res.status(500).send("Error: " + err);
+        res.status(500).json({message: "Server Error", error: err.message});
     }
 }
 
 const getAllProblem = async(req,res) => {
    try {
-        const getProblem = await Problem.find({}).select('_id title difficulty tags');
+        const getProblem = await Problem.find({}).select('_id title difficulty tags').populate('tags','name');
 
         if(!getProblem.length)
-            return res.status(404).send("Problem is missing");
+            return res.status(200).json([]);
 
-        res.status(200).send(getProblem);
+        res.status(200).json(getProblem);
     } catch (err) {
-        res.status(500).send("Error: " + err);
+        res.status(500).json({message: "Server Error", error: err.message});
     } 
 }
 
@@ -161,11 +166,19 @@ const solvedAllProblemByUser = async(req,res)=>{
         const userId = req.result._id;
         const user = await User.findById(userId).populate({
             path:"problemSolved",
-            select:"_id title difficulty tags"
+            select:"_id title difficulty tags",
+            populate: {
+                path: 'tags',
+                select: 'name'
+            }
         }); 
-        res.status(200).send(user.problemSolved);
+
+        if(!user)
+            return res.status(404).json({message: "User not found"});
+
+        res.status(200).json(user.problemSolved);
     } catch (err) {
-        res.status(500).send("Server Error");
+        res.status(500).json({message: "Server Error", error: err.message});
     }
 }
 
@@ -175,12 +188,16 @@ const submittedProblem = async(req,res)=>{
         const userId = req.result._id;
         const problemId = req.params.id;
 
-        const ans = await Submission.find({userId, problemId});
-        if(ans.length == 0)
+        const submissions = await Submission.find({userId, problemId});
+        
+        if(submissions.length == 0)
             res.status(200).send([]);
-        res.status(200).send(ans);
+
+        console.log(submissions);
+        
+        res.status(200).json(submissions);
     } catch (err) {
-        res.status(500).send("Internal Server Error");
+        res.status(500).json({ message: "Internal Server Error", error: err.message });
     }
 }
 

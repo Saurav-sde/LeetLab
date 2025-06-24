@@ -73,7 +73,6 @@ const AdminVideo = () => {
               <th className="w-1/12">#</th>
               <th className="w-4/12">Title</th>
               <th className="w-2/12">Difficulty</th>
-              <th className="w-3/12">Tags</th>
               <th className="w-2/12">Actions</th>
             </tr>
           </thead>
@@ -91,11 +90,6 @@ const AdminVideo = () => {
                         : 'badge-error'
                   }`}>
                     {problem.difficulty}
-                  </span>
-                </td>
-                <td>
-                  <span className="badge badge-outline">
-                    {problem.tags}
                   </span>
                 </td>
                 <td>

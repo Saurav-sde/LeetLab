@@ -59,7 +59,7 @@ function ChatAi({ problem }) {
     };
 
     return (
-        <div className="flex flex-col h-screen max-h-[83vh] min-h-[500px] bg-[#1A1A1A] text-gray-300 font-sans">
+        <div className="flex flex-col h-screen max-h-[83vh] min-h-[500px] text-gray-300 font-sans">
             {/* Messages Display Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-8">
                 <AnimatePresence>

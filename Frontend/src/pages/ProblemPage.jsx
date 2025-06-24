@@ -8,20 +8,20 @@ import axiosClient from "../utils/axiosClient";
 // Resizable Panels
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
-// Import the new, organized components
+// Import page-specific components
 import ProblemPageHeader from '../components/problem/ProblemPageHeader';
 import LeftPanel from '../components/problem/LeftPanel';
 import CodeEditorPanel from '../components/problem/CodeEditorPanel';
 import ConsolePanel from '../components/problem/ConsolePanel';
 
-// NEW: Import icons for maximize/minimize
-import { Maximize, Minimize } from 'lucide-react'; 
-
 const ProblemPage = () => {
   const { user } = useSelector((state) => state.auth);
   const { problemId } = useParams();
 
-  // --- State Management ---
+  // --- State for the slide-in "Problem List" panel ---
+  const [isPanelVisible, setIsPanelVisible] = useState(false);
+  
+  // --- General State Management ---
   const [problem, setProblem] = useState(null);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -41,7 +41,7 @@ const ProblemPage = () => {
   const [runResult, setRunResult] = useState(null);
   const [submitResult, setSubmitResult] = useState(null);
 
-  // NEW: State to track which panel is maximized
+  // State to track which panel is maximized
   const [maximizedPanel, setMaximizedPanel] = useState(null); // null, 'left', 'editor', 'console'
 
   // --- Data Fetching ---
@@ -50,7 +50,6 @@ const ProblemPage = () => {
       setIsPageLoading(true);
       try {
         const response = await axiosClient.get(`/problem/problemById/${problemId}`);
-        // Ensure difficulty has a default value
         if (!response.data.difficulty) {
             response.data.difficulty = "Easy"; 
         }
@@ -74,13 +73,18 @@ const ProblemPage = () => {
   }, [selectedLanguage, problem]);
 
   // --- Handlers ---
+
+  // Function to toggle the "Problem List" panel's visibility
+  const handlePanelToggle = () => {
+    setIsPanelVisible(prev => !prev);
+  };
+
   const handleRun = async () => {
     setIsActionLoading(true);
     setLastAction('run');
     setSubmitResult(null);
     try {
       const response = await axiosClient.post(`/submission/run/${problemId}`, { code, language: selectedLanguage });
-      console.log(response.data);
       setRunResult(response.data);
     } catch (error) {
       console.error('Error running code:', error);
@@ -98,7 +102,6 @@ const ProblemPage = () => {
     try {
       const response = await axiosClient.post(`/submission/submit/${problemId}`, { code, language: selectedLanguage });
       setSubmitResult(response.data);
-      console.log(response.data);
       setActiveLeftTab('submissionResult');
     } catch (error) {
       console.error('Error submitting code:', error);
@@ -108,7 +111,6 @@ const ProblemPage = () => {
     setIsActionLoading(false);
   };
 
-  // NEW: Handler to toggle the maximized panel
   const handleMaximizeToggle = (panelName) => {
     setMaximizedPanel(current => (current === panelName ? null : panelName));
   };
@@ -122,6 +124,7 @@ const ProblemPage = () => {
     );
   }
 
+  // Memoized or pre-rendered panel components
   const leftPanelComponent = (
     <LeftPanel
       problem={problem}
@@ -161,16 +164,23 @@ const ProblemPage = () => {
   );
 
   return (
-    <div className="text-white h-screen font-sans flex flex-col">
+    <div className="text-white h-screen font-sans flex flex-col bg-[#0F0F0F]">
+      {/* The Header component receives the state and toggle function for the panel */}
       <ProblemPageHeader
         user={user}
         loading={isActionLoading}
         onRun={handleRun}
         onSubmit={handleSubmitCode}
+        isPanelVisible={isPanelVisible}
+        onPanelToggle={handlePanelToggle}
       />
       
-      {/* MODIFIED: The main content area now renders based on the maximizedPanel state */}
-      <main className="flex-1 overflow-hidden bg-[#0F0F0F]">
+      {/* This main content area gets blurred when the side panel is visible */}
+      <main 
+        className={`flex-1 overflow-hidden transition-all duration-300 
+          ${isPanelVisible ? 'filter blur-sm pointer-events-none' : ''}`
+        }
+      >
         {maximizedPanel ? (
           <div className="w-full h-full p-3">
             {maximizedPanel === 'left' && <div className="bg-[#1E1E1E] rounded-2xl h-full w-full">{leftPanelComponent}</div>}

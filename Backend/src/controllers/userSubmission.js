@@ -34,7 +34,7 @@ const submitCode = async(req,res) =>{
         const languageId = getLanguageById(language);
 
         // creating a batch submission
-        const submission = problem.hiddenTestCases.map((testcase)=>({
+        const submission = problem.visibleTestCases.map((testcase)=>({
             source_code: code,
             language_id: languageId,
             stdin: testcase.input,

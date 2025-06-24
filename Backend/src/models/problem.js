@@ -18,11 +18,12 @@ const problemSchema = new Schema({
         required:true
     },
 
-    tags:{
-        type:String,
-        enum:['array','linkedlist','graph','dp'],
-        required: true
-    },
+    tags:[
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Tag'
+        }
+    ],
 
     visibleTestCases:[
         {
@@ -36,6 +37,14 @@ const problemSchema = new Schema({
             },
             explanation:{
                 type:String,
+                required: true
+            },
+            displayInput:{
+                type: String,
+                required: true
+            },
+            displayOutput:{
+                type: String,
                 required: true
             }
         }

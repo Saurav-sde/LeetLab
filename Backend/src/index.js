@@ -9,6 +9,7 @@ const problemRouter = require("./routes/problemCreator");
 const submitRouter = require("./routes/submit");
 const aiRouter = require("./routes/aiChatting");
 const videoRouter = require("./routes/videoCreator");
+const tagRouter = require("./routes/tagCreator");
 const cors = require('cors');
 
 app.use(cors({
@@ -24,6 +25,7 @@ app.use('/problem',problemRouter);
 app.use('/submission',submitRouter);
 app.use('/ai',aiRouter);
 app.use('/video', videoRouter);
+app.use('/tags',tagRouter);
 
 const InitialiseConnection = async()=>{
     try {
