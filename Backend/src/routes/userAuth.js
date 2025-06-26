@@ -1,6 +1,6 @@
 const express = require('express');
 const authRouter = express.Router();
-const {register, login, logout, adminRegister, deleteProfile} = require("../controllers/userAuthenticate");
+const {register, login, logout, adminRegister, deleteProfile, userDashboard} = require("../controllers/userAuthenticate");
 const userMiddleware = require("../middleware/userMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
 
@@ -22,6 +22,6 @@ authRouter.get('/check',userMiddleware,(req,res) => {
         message:"Valid User"
     })
 })
-// authRouter.get('/getProfile'.getProfile);
+authRouter.get('/dashboard/:userId',userMiddleware,userDashboard);
 
 module.exports = authRouter;

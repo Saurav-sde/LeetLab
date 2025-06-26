@@ -13,6 +13,8 @@ import AdminUpload from './components/AdminUpload';
 import ProblemPage from './pages/ProblemPage';
 import ProblemPage2 from './pages/ProblemPage2';
 import Homepage2 from './pages/HomePage2';
+import DashboardPage from './pages/DashBoard';
+import Layout from './components/Layout';
 
 function App() {
 
@@ -35,7 +37,10 @@ function App() {
   return ( 
     <>
       <Routes>
-        <Route path='/' element={isAuthenticated?<Homepage2></Homepage2>:<Navigate to="/signup"/>}></Route>
+        <Route  element={<Layout/>}>
+          <Route path='/' element={isAuthenticated?<Homepage2></Homepage2>:<Navigate to="/signup"/>}></Route> 
+          <Route path='/dashboard' element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" />} />
+        </Route>
         <Route path='/login' element={isAuthenticated?<Navigate to="/"/>:<Login></Login>}></Route>
         <Route path='/signup' element={isAuthenticated?<Navigate to="/"/>:<Signup></Signup>}></Route>
         <Route path="/admin" element={isAuthenticated && user?.role === 'admin' ? <Admin /> : <Navigate to="/" />} />
@@ -43,7 +48,7 @@ function App() {
         <Route path="/admin/delete" element={isAuthenticated && user?.role === 'admin' ? <AdminDelete /> : <Navigate to="/" />} />
         <Route path="/admin/video" element={isAuthenticated && user?.role === 'admin' ? <AdminVideo /> : <Navigate to="/" />} />
         <Route path="/admin/upload/:problemId" element={isAuthenticated && user?.role === 'admin' ? <AdminUpload /> : <Navigate to="/" />} />
-        <Route path='/problem/:problemId' element={<ProblemPage/>}></Route>
+        <Route path='/problem/:problemId' element={isAuthenticated?<ProblemPage/>: <Navigate to="/login"/>}></Route>
       </Routes>
     </>
   )

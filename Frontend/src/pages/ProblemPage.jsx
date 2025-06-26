@@ -44,16 +44,27 @@ const ProblemPage = () => {
   // State to track which panel is maximized
   const [maximizedPanel, setMaximizedPanel] = useState(null); // null, 'left', 'editor', 'console'
 
+  // State to manage chat with AI
+  const [chatMessages, setChatMessages] = useState([]);
+
   // --- Data Fetching ---
   useEffect(() => {
     const fetchProblem = async () => {
       setIsPageLoading(true);
+      setChatMessages([]);
       try {
         const response = await axiosClient.get(`/problem/problemById/${problemId}`);
         if (!response.data.difficulty) {
             response.data.difficulty = "Easy"; 
         }
         setProblem(response.data);
+
+        setChatMessages([
+          { 
+            role: 'model', 
+            parts: [{ text: `Hi ${user?.firstName}, I'm your AI assistant. I have context about the problem you're working on. Feel free to ask for hints, code explanations, or debugging help!` }] 
+          }
+        ]);
       } catch (error) {
         console.error('Error fetching problem:', error);
       } finally {
@@ -61,7 +72,7 @@ const ProblemPage = () => {
       }
     };
     fetchProblem();
-  }, [problemId]);
+  }, [problemId, user]);
 
   // --- Code Initialization ---
   const languageMap = { cpp: "C++", java: "Java", javascript: "JavaScript" };
@@ -136,6 +147,8 @@ const ProblemPage = () => {
       language={finalSelectedLanguage}
       onMaximize={() => handleMaximizeToggle('left')}
       isMaximized={maximizedPanel === 'left'}
+      chatMessages={chatMessages}
+      setChatMessages={setChatMessages}
     />
   );
 

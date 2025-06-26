@@ -4,13 +4,11 @@ import { useForm } from "react-hook-form";
 import axiosClient from "../utils/axiosClient";
 import { Send } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
-import ChatMessage from "./ChatMessage"; // <-- Import the new component
+import ChatMessage from "./ChatMessage"; 
 
-function ChatAi({ problem }) {
+function ChatAi({ problem, messages, setMessages }) {
     const { user } = useSelector((state) => state.auth);
-    const [messages, setMessages] = useState([
-        { role: 'model', parts: [{ text: `Hi ${user?.firstName}, I'm your AI assistant. I have context about the problem you're working on. Feel free to ask for hints, code explanations, or debugging help!` }] }
-    ]);
+    
     const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm({
       defaultValues: { message: "" }
     });
@@ -22,15 +20,13 @@ function ChatAi({ problem }) {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     }, [messages]);
     
-    // IMPORTANT: Make sure your backend AI is prompted to respond in Markdown format.
-    // For example, add to your system prompt: "Please format your responses using Markdown. Use code blocks for code snippets."
     const onSubmit = async (data) => {
         if (!data.message.trim() || isAwaitingResponse) return;
 
         const newUserMessage = { role: 'user', parts: [{ text: data.message }] };
         const currentMessages = [...messages, newUserMessage];
-        
         setMessages(currentMessages);
+        
         reset();
         setIsAwaitingResponse(true);
 
@@ -59,7 +55,7 @@ function ChatAi({ problem }) {
     };
 
     return (
-        <div className="flex flex-col h-screen max-h-[83vh] min-h-[500px] text-gray-300 font-sans">
+        <div className="flex flex-col h-screen max-h-[78vh] min-h-[500px] text-gray-300 font-sans">
             {/* Messages Display Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-8">
                 <AnimatePresence>

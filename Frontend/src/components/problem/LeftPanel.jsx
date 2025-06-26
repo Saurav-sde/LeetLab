@@ -55,7 +55,9 @@ const LeftPanel = ({
     code, 
     language,
     onMaximize,
-    isMaximized
+    isMaximized,
+    chatMessages,
+    setChatMessages
 }) => {
   return (
     <div className="h-full flex flex-col border-r border-gray-700 overflow-hidden">
@@ -97,7 +99,7 @@ const LeftPanel = ({
         )}
         {activeTab === 'solutions' && <ReferenceSolutions solutions={problem?.referenceSolution} />}
         {activeTab === 'submissions' && <SubmissionHistory problemId={problemId} />}
-        {activeTab === 'chatAI' && <ChatAi problem={problem} />}
+        {activeTab === 'chatAI' && <ChatAi problem={problem} messages={chatMessages} setMessages={setChatMessages}/>}
         {activeTab === 'submissionResult' && <SubmissionResultView result={submitResult} submittedCode={code} language={language}/>}
       </div>
     </div>

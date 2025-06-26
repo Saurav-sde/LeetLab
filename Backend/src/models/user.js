@@ -2,6 +2,15 @@ const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
 const userSchema = new Schema({
+    username: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+        lowercase: true,
+        minLength: 3,
+        maxLength: 30
+    },
     firstName:{
         type: String,
         required: true,
@@ -41,7 +50,51 @@ const userSchema = new Schema({
     password: {
         type: String,
         required: true
-    }
+    },
+    avatarUrl: {
+        type: String,
+        default: 'default-avatar-url.png' // A default image
+    },
+    bio: {
+        type: String,
+        maxLength: 500,
+        default: ''
+    },
+    location: {
+        type: String,
+        default: ''
+    },
+    university: {
+        type: String,
+        default: ''
+    },
+    contestStats: {
+        rating: { type: Number, default: 1500 },
+        globalRank: { type: Number, default: 0 },
+        contestsAttended: { type: Number, default: 0 }
+    },
+    github: {
+        type: String,
+        default: ''
+    },
+    linkedin: {
+        type: String,
+        default: ''
+    },
+    twitter: {
+        type: String,
+        default: ''
+    },
+    technicalSkills: {
+        type:[{
+            type: String,
+            unique: true
+        }]
+    },
+    createdPlaylists : [{
+        type: Schema.Types.ObjectId,
+        ref:'playlist'
+    }]
 },{timestamps:true});
 
 userSchema.post('findOneAndDelete', async function(userInfo){

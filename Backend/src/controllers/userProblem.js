@@ -21,12 +21,12 @@ const createProblem = async(req,res) => {
             }));
 
             const submitResult = await submitBatch(submission);
-            // console.log(submitResult);
+            console.log(submitResult);
             
 
             const resultToken = submitResult.map((value)=>value.token); // ["token1","token2","token3"]
             const testResult = await submitToken(resultToken);
-            console.log(testResult);
+            // console.log(testResult);
             
             for (const test of testResult) {
                 if(test.status_id != 3)
@@ -41,7 +41,7 @@ const createProblem = async(req,res) => {
         });
         await newProblem.save();
         await newProblem.populate('tags', 'name description');
-        console.log(newProblem);
+        // console.log(newProblem);
         
         res.status(201).json(newProblem);
 
